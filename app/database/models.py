@@ -37,8 +37,8 @@ class DictionaryEntry(Base):
     __tablename__ = "dictionary_entries"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    word: Mapped[str] = mapped_column(String(100), nullable=False)  # Column1
-    translation: Mapped[str] = mapped_column(String(100), nullable=False)   # Column2
+    word: Mapped[str] = mapped_column(Text, nullable=False)  # Column1
+    translation: Mapped[str] = mapped_column(Text, nullable=False)   # Column2
     examples: Mapped[str] = mapped_column(Text, nullable=True)      # Column3
     grammar: Mapped[str] = mapped_column(Text, nullable=True)       # Column4
     notes: Mapped[str] = mapped_column(Text, nullable=True)         # Column5

@@ -9,7 +9,6 @@ from handlers import router
 from database.models import async_main
 
 load_dotenv()
-print("Token loaded:", os.getenv("BOT_TOKEN"))
 
 bot = Bot(token=os.getenv("BOT_TOKEN"))
 dp = Dispatcher()
