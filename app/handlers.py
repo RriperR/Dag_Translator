@@ -6,7 +6,7 @@ from aiogram.fsm.state import State, StatesGroup
 
 import keyboards as kb
 import database.requests as rq
-
+from utils import log_to_group
 
 router = Router()
 
@@ -19,6 +19,11 @@ async def start(message: Message):
     await rq.set_user(message.from_user.id)
     await message.answer('Подробную информацию о боте можно посмотреть по команде /info')
     await message.answer('Выберите язык перевода', reply_markup=await kb.inline_languages())
+
+
+@router.message(Command('chatid'))
+async def help(message: Message):
+    await message.answer(f"chat_id: {message.chat.id}")
 
 
 @router.message(Command('help'))
@@ -45,7 +50,7 @@ async def mode_handler(callback: CallbackQuery):
         await callback.message.edit_text('Что-то пошло не так. /help')
 
 
-@router.message()
+@router.message(F.text)
 async def message_handler(message: Message, state: FSMContext):
     await state.clear()  # Сбросить старое состояние, если было
 
