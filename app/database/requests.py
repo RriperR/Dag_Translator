@@ -1,4 +1,4 @@
-from sqlalchemy import select, update, or_
+from sqlalchemy import select, update, or_, func
 
 from database.models import async_session
 from database.models import User, DictionaryEntry
@@ -22,25 +22,29 @@ async def set_mode(tg_id, mode: str) -> None:
 
 
 
-async def get_entries(search_term: str):
+async def get_entries(search_term: str) -> list[str]:
+    term = search_term.strip().lower()
+
     async with async_session() as session:
         stmt = select(DictionaryEntry).where(
             or_(
-                DictionaryEntry.word.ilike(f"%{search_term}%"),
-                DictionaryEntry.translation.ilike(f"%{search_term}%")
+                func.lower(term) == func.any_(func.string_to_array(func.lower(DictionaryEntry.keywords), '; ')),
+                func.lower(term) == func.any_(func.string_to_array(func.lower(DictionaryEntry.keytranslations), '; '))
             )
         )
+
         result = await session.execute(stmt)
-        entries = result.scalars().all()
+        entries = result.scalars().all()  # ← возвращает список объектов DictionaryEntry
 
-        if not entries:
-            return []
-
-        response_lines = []
+        response = []
         for entry in entries:
-            line = f"{entry.word} - {entry.translation}"
+            text = f"<b>{entry.words}</b> - {entry.translations}"
             if entry.examples:
-                line += f"\n\n{entry.examples}"
-            response_lines.append(line)
+                text += f"\n\n{entry.examples}"
+            if entry.grammar:
+                text += f"\n\n{entry.grammar}"
+            if entry.notes:
+                text += f"\n\n{entry.notes}"
+            response.append(text)
 
-        return response_lines
+        return response

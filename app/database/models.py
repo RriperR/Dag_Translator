@@ -37,11 +37,13 @@ class DictionaryEntry(Base):
     __tablename__ = "dictionary_entries"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    word: Mapped[str] = mapped_column(Text, nullable=False)  # Column1
-    translation: Mapped[str] = mapped_column(Text, nullable=False)   # Column2
-    examples: Mapped[str] = mapped_column(Text, nullable=True)      # Column3
-    grammar: Mapped[str] = mapped_column(Text, nullable=True)       # Column4
-    notes: Mapped[str] = mapped_column(Text, nullable=True)         # Column5
+    words: Mapped[str] = mapped_column(Text, nullable=False)
+    keywords: Mapped[str] = mapped_column(Text, nullable=False)
+    translations: Mapped[str] = mapped_column(Text, nullable=False)
+    keytranslations: Mapped[str] = mapped_column(Text, nullable=False)
+    examples: Mapped[str] = mapped_column(Text, nullable=True)
+    grammar: Mapped[str] = mapped_column(Text, nullable=True)
+    notes: Mapped[str] = mapped_column(Text, nullable=True)
 
 
 async def async_main():

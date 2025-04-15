@@ -53,7 +53,8 @@ async def message_handler(message: Message, state: FSMContext):
     entries = await rq.get_entries(query)
 
     if not entries:
-        await message.answer("Ничего не найдено.")
+        await message.answer("Ничего не найдено. Попробуйте выбрать комплексный режим перевода: /mode\n"
+                             "Если вы знаете перевод, можно добавить его командой /add")
         return
 
     await state.set_state(SearchState.page)
