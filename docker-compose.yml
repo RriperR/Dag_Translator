@@ -4,9 +4,11 @@ services:
     env_file:
       - .env
     volumes:
-      - .:/app
+      - ./app/:/code/app/
     depends_on:
       - db
+    environment:
+      - PYTHONPATH=/code
 
   db:
     image: postgres:16

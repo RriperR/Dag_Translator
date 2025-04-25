@@ -15,7 +15,7 @@ show_more = InlineKeyboardMarkup(inline_keyboard=[
          InlineKeyboardButton(text="Нет", callback_data="more:no")]
     ])
 
-async def inline_languages():
+async def inline_languages() -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardBuilder()
     for language in languages:
         keyboard.add(InlineKeyboardButton(text=language, callback_data=language))
@@ -24,8 +24,21 @@ async def inline_languages():
 
 async def nav_kb(current_page: int, total: int) -> InlineKeyboardMarkup:
     buttons = []
+
+    # Назад на 5
+    if current_page >= 5:
+        buttons.append(InlineKeyboardButton(text="⏪ -5", callback_data="prev5"))
+
+    # Назад на 1
     if current_page > 0:
-        buttons.append(InlineKeyboardButton(text="⬅️ Назад", callback_data="prev"))
+        buttons.append(InlineKeyboardButton(text="⬅️", callback_data="prev"))
+
+    # Вперёд на 1
     if current_page < total - 1:
-        buttons.append(InlineKeyboardButton(text="➡️ Вперёд", callback_data="next"))
+        buttons.append(InlineKeyboardButton(text="➡️", callback_data="next"))
+
+    # Вперёд на 5
+    if current_page + 5 < total:
+        buttons.append(InlineKeyboardButton(text="⏩ +5", callback_data="next5"))
+
     return InlineKeyboardMarkup(inline_keyboard=[buttons]) if buttons else None

@@ -6,7 +6,7 @@ from aiogram import Bot
 
 load_dotenv()
 
-async def log_to_group(bot: Bot, user: User, text: str):
+async def log_to_group(bot: Bot, user: User, text: str) -> None:
     username = f"@{user.username}" if user.username else "[без username]"
     full_name = f"{user.full_name}"
     msg = f'Пользователь {username} "{full_name}" {text}'
