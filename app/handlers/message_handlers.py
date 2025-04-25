@@ -4,27 +4,42 @@ from aiogram.types import Message, CallbackQuery
 
 import keyboards as kb
 import database.requests as rq
+from database.models import KubachinskiEntry, LezginskiEntry
+from models.UserSettings import UserSettingsManager
 
 router = Router()
 
 
+settings_manager = UserSettingsManager()
+
+LANG_MODEL_MAP = {
+    "lezginski": LezginskiEntry,
+    "kubachinski": KubachinskiEntry,
+}
+
 @router.message(F.text)
 async def message_handler(message: Message, state: FSMContext):
     await state.clear()  # Сбросить старое состояние, если было
-
-    query = message.text.strip()
-    entries = await rq.get_entries(query)
-    print(f"entries: {entries}")
     try:
+        query = message.text.strip()
+        settings = await settings_manager.get(message.from_user.id)
+        if settings is None:
+            await message.answer("Что-то пошло не так. Пожалуйста, используйте /start и попробуйте снова")
+            return
+
+        lang = settings["lang"]
+        model = LANG_MODEL_MAP[lang]
+        entries = await rq.get_entries(query, model)
+
         user_entries = await rq.get_users_entries(query)
-        print(f"user_entries: {user_entries}")
         entries.extend(user_entries)
-        print(f"extended entries: {entries}")
     except Exception as e:
         print(f"Exception: {e}")
 
     if not entries:
-        await message.answer("Ничего не найдено. Попробуйте выбрать комплексный режим перевода: /mode\n"
+        await message.answer("К сожалению ничего не нашлось. Попробуйте:\n"
+                             "1) поменять режим перевода - /mode\n"
+                             "2) поменять язык перевода - /lang\n"
                              "Если вы знаете перевод, можно добавить его командой /add")
         return
 

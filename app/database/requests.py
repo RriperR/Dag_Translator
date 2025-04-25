@@ -1,15 +1,25 @@
 from sqlalchemy import select, update, or_, func
 
-from database.models import async_session, User, DictionaryEntry, UserEntry
+from database.models import async_session, User, LezginskiEntry, UserEntry
 
 
-async def set_user(tg_id: int) -> None:
+async def set_user(tg_id: int, username: str = '', first_name: str = '', last_name: str = '') -> None:
     async with async_session() as session:
         user = await session.scalar(select(User).where(User.tg_id == tg_id))
 
         if not user:
-            session.add(User(tg_id=tg_id, mode="simple"))
+            session.add(User(tg_id=tg_id, username=username,
+                             first_name=first_name, last_name=last_name))
             await session.commit()
+
+
+async def get_user_by_tg_id(tg_id: int) -> User | None:
+    async with async_session() as session:
+        result = await session.execute(
+            select(User).where(User.tg_id == tg_id)
+        )
+        user = result.scalar_one_or_none()
+        return user
 
 
 async def set_mode(tg_id, mode: str) -> None:
@@ -20,20 +30,27 @@ async def set_mode(tg_id, mode: str) -> None:
         await session.commit()
 
 
+async def set_language(tg_id, lang: str) -> None:
+    async with async_session() as session:
+        await session.execute(
+            update(User).where(User.tg_id == tg_id).values(language=lang)
+        )
+        await session.commit()
 
-async def get_entries(search_term: str) -> list[str]:
+
+async def get_entries(search_term: str, model = LezginskiEntry) -> list[str]:
     term = search_term.strip().lower()
 
     async with async_session() as session:
-        stmt = select(DictionaryEntry).where(
+        stmt = select(model).where(
             or_(
-                func.lower(term) == func.any_(func.string_to_array(func.lower(DictionaryEntry.keywords), '; ')),
-                func.lower(term) == func.any_(func.string_to_array(func.lower(DictionaryEntry.keytranslations), '; '))
+                func.lower(term) == func.any_(func.string_to_array(func.lower(model.keywords), '; ')),
+                func.lower(term) == func.any_(func.string_to_array(func.lower(model.keytranslations), '; '))
             )
         )
 
         result = await session.execute(stmt)
-        entries = result.scalars().all()  # ← возвращает список объектов DictionaryEntry
+        entries = result.scalars().all()  # ← возвращает список объектов
 
         response = []
         for entry in entries:
@@ -41,7 +58,7 @@ async def get_entries(search_term: str) -> list[str]:
             if entry.examples:
                 text += f"\n\n{entry.examples}"
             if entry.grammar:
-                text += f"\n\n{entry.grammar}"
+                text += f"\n\n{entry.grammar.replace("; ", "\n")}"
             if entry.notes:
                 text += f"\n\n{entry.notes}"
             response.append(text)
@@ -61,7 +78,7 @@ async def get_users_entries(search_term: str) -> list[str]:
         )
 
         result = await session.execute(stmt)
-        entries = result.scalars().all()  # ← возвращает список объектов DictionaryEntry
+        entries = result.scalars().all()
 
         response = []
         for entry in entries:

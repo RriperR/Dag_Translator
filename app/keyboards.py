@@ -8,17 +8,13 @@ modes = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Комплексный', callback_data='mode_complex')]
 ])
 
-languages = ['Кубачинский', 'Даргинский', 'Лезгинский']
-
-show_more = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="Да", callback_data="more:yes"),
-         InlineKeyboardButton(text="Нет", callback_data="more:no")]
-    ])
+languages = {'Лезгинский':'lezginski',
+             'Кубачинский':'kubachinski'}
 
 async def inline_languages() -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardBuilder()
-    for language in languages:
-        keyboard.add(InlineKeyboardButton(text=language, callback_data=language))
+    for language, model in languages.items():
+        keyboard.add(InlineKeyboardButton(text=language, callback_data=f"lang_{model}"))
     return keyboard.adjust(2).as_markup()
 
 

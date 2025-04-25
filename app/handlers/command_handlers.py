@@ -6,8 +6,11 @@ from aiogram.fsm.state import State, StatesGroup
 
 import keyboards as kb
 import database.requests as rq
+from models.UserSettings import UserSettingsManager
 
 router = Router()
+
+settings_manager = UserSettingsManager()
 
 class AddWordStates(StatesGroup):
     word = State()
@@ -18,7 +21,8 @@ class AddWordStates(StatesGroup):
 
 @router.message(CommandStart())
 async def start(message: Message):
-    await rq.set_user(message.from_user.id)
+    user = message.from_user
+    await rq.set_user(user.id, user.username, user.first_name, user.last_name)
     await message.answer('Подробную информацию о боте можно посмотреть по команде /info')
     await message.answer('Отправьте любое слово для перевода')
 
@@ -28,10 +32,42 @@ async def get_chat_id(message: Message):
     await message.answer(f"chat_id: {message.chat.id}")
 
 
-@router.message(Command('help'))
-async def help(message: Message):
-    await message.answer('По техническим вопросам: @RipeR3d')
+@router.message(Command('info'))
+async def get_info(message: Message):
+    await message.answer('Чтобы начать пользоваться ботом, просто отправьте слово на русском или одном из дагестанских языков, и бот постарается найти перевод\n'
+                         'Чтобы поменять язык (по умолчанию стоит лезгинский), используйте команду /lang\n\n'
+                         'Для изменения режима перевода используйте команду /mode\n'
+                         'простой режим: ищет слово целиком,\n'
+                         'комплексный режим - ищет любые совпадения, в том числе во фразах\n\n'
+                         'Чтобы добавить свой перевод, используйте команду /add, а затем следуйте инструкциям\n'
+                         'По дополнительным вопросам: /help')
 
+
+@router.message(Command('help'))
+async def get_help(message: Message):
+    await message.answer('Появились вопросы или идеи? Пиши: @RipeR3d')
+
+
+@router.message(Command('lang'))
+async def set_language(message: Message):
+        await message.answer('Выберите язык для перевода', reply_markup=await kb.inline_languages())
+
+
+@router.callback_query(F.data.startswith('lang_'))
+async def language_handler(callback: CallbackQuery):
+    lang: str = callback.data.replace('lang_', '')
+    await callback.answer()
+    user_id = callback.from_user.id
+    try:
+        await rq.set_language(user_id, lang)
+        await settings_manager.update(user_id=user_id, lang=lang)
+        await callback.message.edit_text(
+            f'Вы выбрали {next((k for k, v in kb.languages.items() if v == lang), "Неизвестный")} язык'
+        )
+
+    except Exception as e:
+        print(e)
+        await callback.message.edit_text('Что-то пошло не так. /help')
 
 @router.message(Command('mode'))
 async def mode(message: Message):
@@ -42,8 +78,11 @@ async def mode(message: Message):
 async def mode_handler(callback: CallbackQuery):
     mode: str = callback.data.replace('mode_', '')
     await callback.answer()
+
+    user_id = callback.message.from_user.id
     try:
-        await rq.set_mode(callback.message.chat.id, mode)
+        await rq.set_mode(user_id, mode)
+        await settings_manager.update(user_id=user_id, mode=mode)
         if mode == "simple":
             await callback.message.edit_text('Вы выбрали простой режим перевода')
         else:

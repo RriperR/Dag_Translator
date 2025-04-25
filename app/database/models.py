@@ -1,6 +1,6 @@
 import os
 
-from datetime import datetime, UTC
+from datetime import datetime
 from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 
@@ -37,11 +37,12 @@ class User(Base):
     first_name: Mapped[str] = mapped_column(String(64), nullable=True)
     last_name: Mapped[str] = mapped_column(String(64), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(MOSCOW_TZ))
-    mode: Mapped[str] = mapped_column(String(12), default='default')
+    mode: Mapped[str] = mapped_column(String(12), default='simple')
+    language: Mapped[str] = mapped_column(String(32), default='lezginski')
 
 
-class DictionaryEntry(Base):
-    __tablename__ = "dictionary_entries"
+class AbstractEntry(Base):
+    __abstract__ = True
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     words: Mapped[str] = mapped_column(Text, nullable=False)
@@ -51,6 +52,13 @@ class DictionaryEntry(Base):
     examples: Mapped[str] = mapped_column(Text, nullable=True)
     grammar: Mapped[str] = mapped_column(Text, nullable=True)
     notes: Mapped[str] = mapped_column(Text, nullable=True)
+
+
+class LezginskiEntry(AbstractEntry):
+    __tablename__ = "lezginski_entries"
+
+class KubachinskiEntry(AbstractEntry):
+    __tablename__ = "kubachinski_entries"
 
 
 class UserEntry(Base):
