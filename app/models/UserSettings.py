@@ -14,11 +14,8 @@ class UserSettingsManager:
         if user_id in self._cache:
             return self._cache[user_id]
 
-        print(user_id)
-
         user = await get_user_by_tg_id(user_id)
 
-        print(user)
         if user is None:
             return None
 

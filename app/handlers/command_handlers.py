@@ -79,7 +79,7 @@ async def mode_handler(callback: CallbackQuery):
     mode: str = callback.data.replace('mode_', '')
     await callback.answer()
 
-    user_id = callback.message.from_user.id
+    user_id = callback.from_user.id
     try:
         await rq.set_mode(user_id, mode)
         await settings_manager.update(user_id=user_id, mode=mode)

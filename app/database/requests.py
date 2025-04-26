@@ -38,33 +38,50 @@ async def set_language(tg_id, lang: str) -> None:
         await session.commit()
 
 
-async def get_entries(search_term: str, model = LezginskiEntry) -> list[str]:
-    term = search_term.strip().lower()
 
+async def get_entries(search_term: str, model=LezginskiEntry, mode: str = "simple") -> list[str] | None:
+    term = search_term.strip().lower()
     async with async_session() as session:
-        stmt = select(model).where(
+        # Сначала точные совпадения
+        stmt_exact = select(model).where(
             or_(
                 func.lower(term) == func.any_(func.string_to_array(func.lower(model.keywords), '; ')),
                 func.lower(term) == func.any_(func.string_to_array(func.lower(model.keytranslations), '; '))
             )
         )
 
-        result = await session.execute(stmt)
-        entries = result.scalars().all()  # ← возвращает список объектов
+        exact_result = await session.execute(stmt_exact)
+        exact_entries = exact_result.scalars().all()
+
+        # Потом нестрогие совпадения в examples (только если complex)
+        fuzzy_entries = []
+        if mode == "complex":
+            stmt_fuzzy = select(model).where(
+                func.lower(model.examples).ilike(f"%{term}%")
+            )
+            fuzzy_result = await session.execute(stmt_fuzzy)
+            fuzzy_entries = fuzzy_result.scalars().all()
+
+        # Убираем дубликаты
+        all_entries = {entry.id: entry for entry in exact_entries}
+        all_entries.update({entry.id: entry for entry in fuzzy_entries})
+
+        # Если слишком много совпадений — возвращаем None
+        if len(all_entries) > 100:
+            return None
 
         response = []
-        for entry in entries:
+        for entry in all_entries.values():
             text = f"<b>{entry.words}</b> - {entry.translations}"
             if entry.examples:
-                text += f"\n\n{entry.examples}"
+                text += f"\n\n{entry.examples.replace('; ', '\n')}"
             if entry.grammar:
-                text += f"\n\n{entry.grammar.replace("; ", "\n")}"
+                text += f"\n\n{entry.grammar}"
             if entry.notes:
                 text += f"\n\n{entry.notes}"
             response.append(text)
 
         return response
-
 
 async def get_users_entries(search_term: str) -> list[str]:
     term = search_term.strip().lower()

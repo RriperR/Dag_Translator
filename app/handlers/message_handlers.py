@@ -29,7 +29,16 @@ async def message_handler(message: Message, state: FSMContext):
 
         lang = settings["lang"]
         model = LANG_MODEL_MAP[lang]
-        entries = await rq.get_entries(query, model)
+        mode = settings["mode"]
+        entries = await rq.get_entries(query, model, mode)
+
+        if entries is None:
+            await message.answer(
+                "🔎 Найдено слишком много совпадений.\n\n"
+                "Пожалуйста, выберите более точное слово"
+                " или попробуйте использовать простой режим /mode для более точного поиска."
+            )
+            return
 
         user_entries = await rq.get_users_entries(query)
         entries.extend(user_entries)
@@ -39,7 +48,7 @@ async def message_handler(message: Message, state: FSMContext):
     if not entries:
         await message.answer("К сожалению ничего не нашлось. Попробуйте:\n"
                              "1) поменять режим перевода - /mode\n"
-                             "2) поменять язык перевода - /lang\n"
+                             "2) поменять язык перевода - /lang\n\n"
                              "Если вы знаете перевод, можно добавить его командой /add")
         return
 
