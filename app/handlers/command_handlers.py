@@ -50,8 +50,12 @@ async def get_help(message: Message):
 
 @router.message(Command('lang'))
 async def set_language(message: Message):
-        await message.answer('Выберите язык для перевода', reply_markup=await kb.inline_languages())
-
+    settings = await settings_manager.get(message.from_user.id)
+    current_lang = settings["lang"]
+    await message.answer(
+        'Выберите язык для перевода',
+        reply_markup=await kb.inline_languages(current=current_lang)
+    )
 
 @router.callback_query(F.data.startswith('lang_'))
 async def language_handler(callback: CallbackQuery):

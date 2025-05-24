@@ -38,7 +38,7 @@ class User(Base):
     last_name: Mapped[str] = mapped_column(String(64), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(MOSCOW_TZ))
     mode: Mapped[str] = mapped_column(String(12), default='simple')
-    language: Mapped[str] = mapped_column(String(32), default='lezginski')
+    language: Mapped[str] = mapped_column(String(32))
 
 
 class AbstractEntry(Base):

@@ -3,13 +3,13 @@ from sqlalchemy import select, update, or_, func
 from database.models import async_session, User, LezginskiEntry, UserEntry
 
 
-async def set_user(tg_id: int, username: str = '', first_name: str = '', last_name: str = '') -> None:
+async def set_user(tg_id: int, username: str = '', first_name: str = '', last_name: str = '', lang: str = "kubachinski") -> None:
     async with async_session() as session:
         user = await session.scalar(select(User).where(User.tg_id == tg_id))
 
         if not user:
             session.add(User(tg_id=tg_id, username=username,
-                             first_name=first_name, last_name=last_name))
+                             first_name=first_name, last_name=last_name, language=lang))
             await session.commit()
 
 

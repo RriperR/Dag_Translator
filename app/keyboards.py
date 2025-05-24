@@ -11,10 +11,11 @@ modes = InlineKeyboardMarkup(inline_keyboard=[
 languages = {'Лезгинский':'lezginski',
              'Кубачинский':'kubachinski'}
 
-async def inline_languages() -> InlineKeyboardMarkup:
+async def inline_languages(current: str = None) -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardBuilder()
     for language, model in languages.items():
-        keyboard.add(InlineKeyboardButton(text=language, callback_data=f"lang_{model}"))
+        prefix = "📌" if current == model else ""
+        keyboard.add(InlineKeyboardButton(text=f"{prefix} {language}", callback_data=f"lang_{model}"))
     return keyboard.adjust(2).as_markup()
 
 
