@@ -40,7 +40,7 @@ async def set_language(tg_id, lang: str) -> None:
 
 
 async def get_entries(search_term: str, model=LezginskiEntry, mode: str = "simple") -> list[str] | None:
-    term = search_term.strip().lower()
+    term = search_term.strip().lower().replace('1', '').replace('!', '').replace('l', '').replace('i', '').replace('|', '')
     async with async_session() as session:
         # Сначала точные совпадения
         stmt_exact = select(model).where(
@@ -73,12 +73,10 @@ async def get_entries(search_term: str, model=LezginskiEntry, mode: str = "simpl
         response = []
         for entry in all_entries.values():
             text = f"<b>{entry.words}</b> - {entry.translations}"
+            if entry.notes:
+                text += f";  {entry.notes}"
             if entry.examples:
                 text += f"\n\n{entry.examples.replace('; ', '\n')}"
-            if entry.grammar:
-                text += f"\n\n{entry.grammar}"
-            if entry.notes:
-                text += f"\n\n{entry.notes}"
             response.append(text)
 
         return response

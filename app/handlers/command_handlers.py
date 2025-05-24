@@ -45,7 +45,7 @@ async def get_info(message: Message):
 
 @router.message(Command('help'))
 async def get_help(message: Message):
-    await message.answer('Появились вопросы или идеи? Пиши: @RipeR3d')
+    await message.answer('Появились вопросы или идеи? Пиши: @translatedag')
 
 
 @router.message(Command('lang'))

@@ -50,8 +50,8 @@ class AbstractEntry(Base):
     translations: Mapped[str] = mapped_column(Text, nullable=False)
     keytranslations: Mapped[str] = mapped_column(Text, nullable=False)
     examples: Mapped[str] = mapped_column(Text, nullable=True)
-    grammar: Mapped[str] = mapped_column(Text, nullable=True)
     notes: Mapped[str] = mapped_column(Text, nullable=True)
+    original: Mapped[str] = mapped_column(Text, nullable=True)
 
 
 class LezginskiEntry(AbstractEntry):
